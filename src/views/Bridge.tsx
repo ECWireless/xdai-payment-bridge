@@ -4,7 +4,7 @@ import 'styled-components/macro';
 import { GU } from 'components/theme';
 
 import { Container, Flex } from 'components/Containers';
-import { H3 } from 'components/Typography';
+import { P1 } from 'components/Typography';
 
 const Bridge: React.FC = () => {
   const { id } = useParams();
@@ -17,14 +17,6 @@ const Bridge: React.FC = () => {
 
   return (
     <Container>
-      <Flex
-        css={`
-          padding-top: ${GU * 10}px;
-        `}
-        justify={'center'}
-      >
-        <H3>{id}</H3>
-      </Flex>
       <Flex
         css={`
           height: 80vh;
@@ -59,6 +51,15 @@ const Bridge: React.FC = () => {
               Pay
             </button>
           </Flex>
+          {id && (
+            <P1
+              css={`
+                margin-top: ${GU * 8}px;
+              `}
+            >
+              Receiving address: {id}
+            </P1>
+          )}
         </form>
       </Flex>
     </Container>

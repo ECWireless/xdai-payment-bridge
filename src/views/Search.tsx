@@ -6,10 +6,10 @@ import { GU } from 'components/theme';
 import { WalletContext } from 'contexts/WalletContext';
 
 import { Container, Flex } from 'components/Containers';
-import { H3, P2 } from 'components/Typography';
+import { H3 } from 'components/Typography';
 
 const Search: React.FC = () => {
-  const { address, connectWallet, isConnected, disconnect } = useContext(WalletContext);
+  const { isConnected } = useContext(WalletContext);
   const navigate = useNavigate();
   const [searchedAddress, setSearchedAddress] = React.useState('');
 
@@ -27,24 +27,13 @@ const Search: React.FC = () => {
     <Container>
       <Flex
         css={`
-          padding-top: ${GU * 10}px;
-        `}
-        align={'center'}
-        direction={'column'}
-        justify={'center'}
-      >
-        <H3>xDAI PaymentBridge</H3>
-        {isConnected && <P2>Connected as {address}</P2>}
-      </Flex>
-      <Flex
-        css={`
           height: 80vh;
         `}
         align={'center'}
         direction={'column'}
         justify={'center'}
       >
-        {isConnected && (
+        {isConnected ? (
           <div>
             <form onSubmit={onSubmit}>
               <label htmlFor={'search'}>Search receiving address:</label>
@@ -73,25 +62,9 @@ const Search: React.FC = () => {
                 </button>
               </Flex>
             </form>
-            <button
-              css={`
-                margin-top: ${GU * 8}px;
-              `}
-              onClick={disconnect}
-            >
-              Disconnect
-            </button>
           </div>
-        )}
-        {!isConnected && (
-          <button
-            css={`
-              margin-top: ${GU * 8}px;
-            `}
-            onClick={connectWallet}
-          >
-            Connect
-          </button>
+        ) : (
+          <H3>Connect to a wallet to search for addresses</H3>
         )}
       </Flex>
     </Container>
