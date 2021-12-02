@@ -1,5 +1,5 @@
-import ethIcon from 'assets/images/eth.png';
-import xdaiIcon from 'assets/images/xdai.png';
+import ethIcon from 'assets/eth.png';
+import xdaiIcon from 'assets/xdai.png';
 
 const { REACT_APP_DEFAULT_NETWORK, REACT_APP_KOVAN_RPC: KOVAN_RPC, REACT_APP_SOKOL_RPC: SOKOL_RPC } = process.env;
 

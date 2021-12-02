@@ -1,22 +1,25 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import 'styled-components/macro';
 import { GU } from 'components/theme';
 
+import { WalletContext } from 'contexts/WalletContext';
+
 import { Container, Flex } from 'components/Containers';
-import { H3 } from 'components/Typography';
+import { H3, P2 } from 'components/Typography';
 
 const Search: React.FC = () => {
+  const { address, connectWallet, isConnected, disconnect } = useContext(WalletContext);
   const navigate = useNavigate();
-  const [address, setAddress] = React.useState('');
+  const [searchedAddress, setSearchedAddress] = React.useState('');
 
   const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (address.length !== 42) {
+    if (searchedAddress.length !== 42) {
       alert('Invalid address');
       return;
     } else {
-      navigate(`/address/${address}`);
+      navigate(`/address/${searchedAddress}`);
     }
   };
 
@@ -26,9 +29,12 @@ const Search: React.FC = () => {
         css={`
           padding-top: ${GU * 10}px;
         `}
+        align={'center'}
+        direction={'column'}
         justify={'center'}
       >
         <H3>xDAI PaymentBridge</H3>
+        {isConnected && <P2>Connected as {address}</P2>}
       </Flex>
       <Flex
         css={`
@@ -38,33 +44,55 @@ const Search: React.FC = () => {
         direction={'column'}
         justify={'center'}
       >
-        <form onSubmit={onSubmit}>
-          <label htmlFor={'search'}>Search receiving address:</label>
-          <Flex
-            css={`
-              margin-top: ${GU * 2}px;
-            `}
-          >
-            <input
-              css={`
-                width: ${GU * 100}px;
-              `}
-              type={'text'}
-              name={'search'}
-              id={'search'}
-              onChange={(e) => setAddress(e.target.value)}
-              value={address}
-            />
+        {isConnected && (
+          <div>
+            <form onSubmit={onSubmit}>
+              <label htmlFor={'search'}>Search receiving address:</label>
+              <Flex
+                css={`
+                  margin-top: ${GU * 2}px;
+                `}
+              >
+                <input
+                  css={`
+                    width: ${GU * 100}px;
+                  `}
+                  type={'text'}
+                  name={'search'}
+                  id={'search'}
+                  onChange={(e) => setSearchedAddress(e.target.value)}
+                  value={searchedAddress}
+                />
+                <button
+                  css={`
+                    margin-left: ${GU * 2}px;
+                  `}
+                  type={'submit'}
+                >
+                  Search
+                </button>
+              </Flex>
+            </form>
             <button
               css={`
-                margin-left: ${GU * 2}px;
+                margin-top: ${GU * 8}px;
               `}
-              type={'submit'}
+              onClick={disconnect}
             >
-              Search
+              Disconnect
             </button>
-          </Flex>
-        </form>
+          </div>
+        )}
+        {!isConnected && (
+          <button
+            css={`
+              margin-top: ${GU * 8}px;
+            `}
+            onClick={connectWallet}
+          >
+            Connect
+          </button>
+        )}
       </Flex>
     </Container>
   );
