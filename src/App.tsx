@@ -11,7 +11,7 @@ const App: React.FC = () => {
         <Header />
         <Routes>
           <Route path="/" element={<Search />} />
-          <Route path="/address/:id" element={<Bridge />} />
+          <Route path="/addresses/:id" element={<Bridge />} />
         </Routes>
       </Router>
     </div>
