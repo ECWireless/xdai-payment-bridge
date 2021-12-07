@@ -1,13 +1,20 @@
 import { utils } from 'ethers';
 
-import { DEFAULT_NETWORK, EXPLORER_URLS, NETWORK_CURRENCIES, NETWORK_NAMES, RPC_URLS } from 'web3/constants';
+import {
+  DEFAULT_NETWORK,
+  SIDE_NETWORK,
+  EXPLORER_URLS,
+  NETWORK_CURRENCIES,
+  NETWORK_NAMES,
+  RPC_URLS,
+} from 'web3/constants';
 
 type SwitchError = {
   code: number;
 };
 
 export const switchChainOnMetaMask = async (chainId: number): Promise<boolean> => {
-  if (chainId !== DEFAULT_NETWORK) return false;
+  if (chainId !== DEFAULT_NETWORK && chainId !== SIDE_NETWORK) return false;
 
   const { name, symbol } = NETWORK_CURRENCIES[chainId] || {};
   const networkName = NETWORK_NAMES[chainId];

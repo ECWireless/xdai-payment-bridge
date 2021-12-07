@@ -62,28 +62,32 @@ export const WalletProvider: React.FC = ({ children }) => {
     setIsGnosisSafe(false);
   }, []);
 
-  const setWalletProvider = useCallback(async (prov) => {
-    const ethersProvider = new providers.Web3Provider(prov);
+  const setWalletProvider = useCallback(
+    async (prov) => {
+      const ethersProvider = new providers.Web3Provider(prov);
 
-    let network = Number(prov.chainId);
-    if (network !== DEFAULT_NETWORK && network !== SIDE_NETWORK) {
-      const success = isMetamaskProvider(ethersProvider) ? await switchChainOnMetaMask(DEFAULT_NETWORK) : false;
-      if (!success) {
-        const errorMsg = `Network not supported, please switch to ${NETWORK_NAMES[DEFAULT_NETWORK]}`;
-        toast.error(errorMsg);
-        throw new Error(errorMsg);
+      const network = Number(prov.chainId);
+      if (network !== DEFAULT_NETWORK && network !== SIDE_NETWORK) {
+        const success = isMetamaskProvider(ethersProvider)
+          ? await switchChainOnMetaMask(chainId === DEFAULT_NETWORK ? SIDE_NETWORK : DEFAULT_NETWORK)
+          : false;
+        if (!success) {
+          const errorMsg = `Network not supported, please switch to ${NETWORK_NAMES[DEFAULT_NETWORK]}`;
+          toast.error(errorMsg);
+          throw new Error(errorMsg);
+        }
+        window.location.reload();
       }
-      network = DEFAULT_NETWORK;
-      window.location.reload();
-    }
 
-    const signerAddress = await ethersProvider.getSigner().getAddress();
-    setWalletState({
-      provider: ethersProvider,
-      chainId: network,
-      address: signerAddress.toLowerCase(),
-    });
-  }, []);
+      const signerAddress = await ethersProvider.getSigner().getAddress();
+      setWalletState({
+        provider: ethersProvider,
+        chainId: network,
+        address: signerAddress.toLowerCase(),
+      });
+    },
+    [chainId],
+  );
 
   const connectWallet = useCallback(async () => {
     try {

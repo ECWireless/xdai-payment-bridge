@@ -11,10 +11,14 @@ import { useAllowance } from 'hooks/useAllowance';
 import { WalletContext } from 'contexts/WalletContext';
 import { onApprove } from 'web3/approve';
 import { relayTokens } from 'web3/bridge';
-import { NETWORK_CURRENCIES, SIDE_NETWORK, bridgeAddresses } from 'web3/constants';
+import { NETWORK_CURRENCIES, DEFAULT_NETWORK, SIDE_NETWORK, bridgeAddresses, NETWORK_NAMES } from 'web3/constants';
+import { switchChainOnMetaMask } from 'web3/metamask';
 
 import { Container, Flex } from 'components/Containers';
 import { P1, P3 } from 'components/Typography';
+
+const isMetamaskProvider = (provider: providers.Web3Provider | null | undefined) =>
+  provider?.connection?.url === 'metamask';
 
 const Bridge: React.FC = () => {
   const { id } = useParams();
@@ -107,6 +111,20 @@ const Bridge: React.FC = () => {
     }
   };
 
+  const onSwitchNetwork = useCallback(async () => {
+    const isMetamask = isMetamaskProvider(provider);
+    if (isMetamask) {
+      const success = await switchChainOnMetaMask(chainId === DEFAULT_NETWORK ? SIDE_NETWORK : DEFAULT_NETWORK);
+      if (!success) {
+        toast.error(`Could not switch network`);
+        return;
+      }
+    } else {
+      toast.error(`Auto-switching requeires metamask. Please manually switch to ${NETWORK_NAMES[DEFAULT_NETWORK]}`);
+      return;
+    }
+  }, [chainId, provider]);
+
   return (
     <Container>
       <Flex
@@ -117,6 +135,17 @@ const Bridge: React.FC = () => {
         direction={'column'}
         justify={'center'}
       >
+        {provider && (
+          <Flex
+            css={`
+              margin-bottom: ${GU * 12}px;
+            `}
+          >
+            <button onClick={onSwitchNetwork}>
+              Switch to {chainId === DEFAULT_NETWORK ? NETWORK_NAMES[SIDE_NETWORK] : NETWORK_NAMES[DEFAULT_NETWORK]}
+            </button>
+          </Flex>
+        )}
         <form onSubmit={onSubmit}>
           <label htmlFor={'search'}>Amount:</label>
           <Flex
