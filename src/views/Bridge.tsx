@@ -1,6 +1,7 @@
-import React, { useContext, useMemo } from 'react';
+import React, { useCallback, useContext, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { utils, BigNumber } from 'ethers';
+import { utils, providers } from 'ethers';
+import { toast } from 'react-toastify';
 import 'styled-components/macro';
 import { GU } from 'components/theme';
 
@@ -8,29 +9,67 @@ import { useRefresh } from 'hooks/useRefresh';
 import { useBalance } from 'hooks/useBalance';
 import { useAllowance } from 'hooks/useAllowance';
 import { WalletContext } from 'contexts/WalletContext';
-import { kovanXDaiBridgeAddress } from 'web3/constants';
+import { kovanXDaiBridgeAddress, erc20Tokens } from 'web3/constants';
+import { onApprove } from 'web3/approve';
 
 import { Container, Flex } from 'components/Containers';
 import { P1, P3 } from 'components/Typography';
 
 const Bridge: React.FC = () => {
   const { id } = useParams();
-  const { address } = useContext(WalletContext);
+  const { chainId, provider } = useContext(WalletContext);
   const [refreshCount, refresh] = useRefresh();
   const { balances } = useBalance(refreshCount);
-  const allowance = useAllowance(address || '', kovanXDaiBridgeAddress, refreshCount);
-  const [amount, setAmount] = React.useState('');
-
-  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    console.log('Paying ' + amount);
-  };
+  const allowance = useAllowance(kovanXDaiBridgeAddress, erc20Tokens[0].address, refreshCount);
+  const [amount, setAmount] = useState('');
+  const [isPending, setIsPending] = useState(false);
 
   const needsApproved = useMemo(() => {
     if (allowance.toString() === '0') return true;
     if (amount === '') return false;
-    return BigNumber.from(amount).gt(allowance);
+    return utils.parseEther(amount).gt(allowance);
   }, [amount, allowance]);
+
+  const checkTx = useCallback(
+    async (tx: providers.TransactionResponse) => {
+      if (!chainId) throw Error('Depositing funds');
+      if (!tx) throw Error('Could not confirm token approval');
+      await tx.wait();
+      const { status } = await tx.wait();
+      if (status !== 1) {
+        throw new Error('Could not confirm token approval');
+      }
+      refresh();
+    },
+    [chainId, refresh],
+  );
+
+  const onApproveToken = useCallback(async () => {
+    if (!provider) return;
+
+    try {
+      setIsPending(true);
+      const tx = await onApprove(provider, erc20Tokens[0].address, kovanXDaiBridgeAddress);
+      await checkTx(tx);
+      toast.success(`KSPOA has been approved`);
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Approving token failed', error);
+      const possibleTxError = error as Error & { error?: Error };
+      toast.error(`Approve failed: ${possibleTxError.error ? possibleTxError.error.message : possibleTxError.message}`);
+    } finally {
+      setIsPending(false);
+    }
+  }, [provider, checkTx]);
+
+  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (needsApproved) {
+      onApproveToken();
+    } else {
+      console.log('Paying ' + amount);
+    }
+  };
 
   return (
     <Container>
@@ -64,8 +103,9 @@ const Bridge: React.FC = () => {
                 margin-left: ${GU * 2}px;
               `}
               type={'submit'}
+              disabled={isPending}
             >
-              {needsApproved ? 'Approve' : 'Pay'}
+              {isPending ? 'Pending...' : needsApproved ? 'Approve' : 'Pay'}
             </button>
           </Flex>
           {balances['KSPOA'] && (
