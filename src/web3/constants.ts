@@ -3,6 +3,15 @@ import xdaiIcon from 'assets/xdai.png';
 
 const { REACT_APP_DEFAULT_NETWORK, REACT_APP_KOVAN_RPC: KOVAN_RPC, REACT_APP_SOKOL_RPC: SOKOL_RPC } = process.env;
 
+export const erc20Tokens = [
+  {
+    name: 'Kovan SPOA',
+    symbol: 'KSPOA',
+    decimals: 18,
+    address: '0xff94183659f549d6273349696d73686ee1d2ac83',
+  },
+];
+
 // networks
 type StringInfo = {
   [chainId: number]: string;

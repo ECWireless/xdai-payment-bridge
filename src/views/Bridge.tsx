@@ -1,13 +1,17 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
+import { utils } from 'ethers';
 import 'styled-components/macro';
 import { GU } from 'components/theme';
 
+import { useBalance } from 'hooks/useBalance';
+
 import { Container, Flex } from 'components/Containers';
-import { P1 } from 'components/Typography';
+import { P1, P3 } from 'components/Typography';
 
 const Bridge: React.FC = () => {
   const { id } = useParams();
+  const { balances } = useBalance();
   const [amount, setAmount] = React.useState('');
 
   const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -51,6 +55,15 @@ const Bridge: React.FC = () => {
               Pay
             </button>
           </Flex>
+          {balances['KSPOA'] && (
+            <P3
+              css={`
+                margin-top: ${GU * 2}px;
+              `}
+            >
+              Current balance: {utils.formatEther(balances['KSPOA']).toString()} KSPOA
+            </P3>
+          )}
           {id && (
             <P1
               css={`
