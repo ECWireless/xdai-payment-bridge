@@ -19,7 +19,7 @@ const Search: React.FC = () => {
       alert('Invalid address');
       return;
     } else {
-      navigate(`/address/${searchedAddress}`);
+      navigate(`/addresses/${searchedAddress}`);
     }
   };
 
