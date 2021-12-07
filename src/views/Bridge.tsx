@@ -9,9 +9,9 @@ import { useRefresh } from 'hooks/useRefresh';
 import { useBalance } from 'hooks/useBalance';
 import { useAllowance } from 'hooks/useAllowance';
 import { WalletContext } from 'contexts/WalletContext';
-import { kovanToSokolBridgeAddress, erc20Tokens } from 'web3/constants';
 import { onApprove } from 'web3/approve';
-import { relayTokens } from 'web3/kovanToSokolBridge';
+import { relayTokens } from 'web3/bridge';
+import { NETWORK_CURRENCIES, SIDE_NETWORK, bridgeAddresses } from 'web3/constants';
 
 import { Container, Flex } from 'components/Containers';
 import { P1, P3 } from 'components/Typography';
@@ -20,16 +20,21 @@ const Bridge: React.FC = () => {
   const { id } = useParams();
   const { chainId, provider } = useContext(WalletContext);
   const [refreshCount, refresh] = useRefresh();
-  const { balances } = useBalance(refreshCount);
-  const allowance = useAllowance(kovanToSokolBridgeAddress, erc20Tokens[0].address, refreshCount);
+  const { balance } = useBalance(refreshCount);
+  const allowance = useAllowance(
+    chainId ? bridgeAddresses[chainId] : '',
+    chainId ? NETWORK_CURRENCIES[chainId].address : '',
+    refreshCount,
+  );
   const [amount, setAmount] = useState('');
   const [isPending, setIsPending] = useState(false);
 
   const needsApproved = useMemo(() => {
+    if (chainId === SIDE_NETWORK) return false;
     if (allowance.toString() === '0') return true;
     if (amount === '') return false;
     return utils.parseEther(amount).gt(allowance);
-  }, [amount, allowance]);
+  }, [amount, chainId, allowance]);
 
   const isDisabled = useMemo(() => {
     if (amount === '' || amount === '0' || isPending) return true;
@@ -56,7 +61,11 @@ const Bridge: React.FC = () => {
 
     try {
       setIsPending(true);
-      const tx = await onApprove(provider, erc20Tokens[0].address, kovanToSokolBridgeAddress);
+      const tx = await onApprove(
+        provider,
+        chainId ? NETWORK_CURRENCIES[chainId].address : '',
+        chainId ? bridgeAddresses[chainId] : '',
+      );
       await checkTx(tx);
       toast.success(`KSPOA has been approved`);
     } catch (error) {
@@ -67,16 +76,16 @@ const Bridge: React.FC = () => {
     } finally {
       setIsPending(false);
     }
-  }, [provider, checkTx]);
+  }, [chainId, provider, checkTx]);
 
   const onRelayTokens = useCallback(async () => {
-    if (!(provider && amount && id)) return;
+    if (!(chainId && provider && amount && id)) return;
 
     try {
       setIsPending(true);
-      const tx = await relayTokens(provider, kovanToSokolBridgeAddress, id, utils.parseEther(amount).toString());
+      const tx = await relayTokens(provider, chainId, id, amount);
       await checkTx(tx);
-      toast.success(`KSPOA has been bridged`);
+      toast.success(`${NETWORK_CURRENCIES[chainId]?.symbol} has been bridged`);
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('Bridging token failed', error);
@@ -87,7 +96,7 @@ const Bridge: React.FC = () => {
     } finally {
       setIsPending(false);
     }
-  }, [amount, id, provider, checkTx]);
+  }, [amount, chainId, id, provider, checkTx]);
 
   const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -119,6 +128,7 @@ const Bridge: React.FC = () => {
               css={`
                 width: ${GU * 60}px;
               `}
+              disabled={isDisabled}
               type={'number'}
               name={'search'}
               id={'search'}
@@ -135,13 +145,14 @@ const Bridge: React.FC = () => {
               {isPending ? 'Pending...' : needsApproved ? 'Approve' : 'Pay'}
             </button>
           </Flex>
-          {balances['KSPOA'] && (
+          {chainId && (
             <P3
               css={`
                 margin-top: ${GU * 2}px;
               `}
             >
-              Current balance: {utils.formatEther(balances['KSPOA']).toString()} KSPOA
+              Current balance: {utils.formatEther(balance).toString()}{' '}
+              {chainId ? NETWORK_CURRENCIES[chainId].symbol : ''}
             </P3>
           )}
           {id && (

@@ -7,7 +7,7 @@ export const useAllowance = (spenderAddress: string, tokenAddress: string, refre
   const [allowance, setAllowance] = useState<string>('0');
 
   const fetchAllowance = useCallback(async () => {
-    if (!provider || !address || !spenderAddress) return;
+    if (!provider || !address || !spenderAddress || !tokenAddress) return;
     const allowance = await getAllowance(provider, tokenAddress, address, spenderAddress);
     setAllowance(allowance);
   }, [address, provider, spenderAddress, tokenAddress]);
