@@ -12,7 +12,7 @@ export const erc20Tokens = [
   },
 ];
 
-export const kovanXDaiBridgeAddress = '0x99fb1a25caeb9c3a5bf132686e2fe5e27bc0e2dd';
+export const kovanToSokolBridgeAddress = '0x99fb1a25caeb9c3a5bf132686e2fe5e27bc0e2dd';
 
 // networks
 type StringInfo = {

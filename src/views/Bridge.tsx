@@ -9,8 +9,9 @@ import { useRefresh } from 'hooks/useRefresh';
 import { useBalance } from 'hooks/useBalance';
 import { useAllowance } from 'hooks/useAllowance';
 import { WalletContext } from 'contexts/WalletContext';
-import { kovanXDaiBridgeAddress, erc20Tokens } from 'web3/constants';
+import { kovanToSokolBridgeAddress, erc20Tokens } from 'web3/constants';
 import { onApprove } from 'web3/approve';
+import { relayTokens } from 'web3/kovanToSokolBridge';
 
 import { Container, Flex } from 'components/Containers';
 import { P1, P3 } from 'components/Typography';
@@ -20,7 +21,7 @@ const Bridge: React.FC = () => {
   const { chainId, provider } = useContext(WalletContext);
   const [refreshCount, refresh] = useRefresh();
   const { balances } = useBalance(refreshCount);
-  const allowance = useAllowance(kovanXDaiBridgeAddress, erc20Tokens[0].address, refreshCount);
+  const allowance = useAllowance(kovanToSokolBridgeAddress, erc20Tokens[0].address, refreshCount);
   const [amount, setAmount] = useState('');
   const [isPending, setIsPending] = useState(false);
 
@@ -29,6 +30,12 @@ const Bridge: React.FC = () => {
     if (amount === '') return false;
     return utils.parseEther(amount).gt(allowance);
   }, [amount, allowance]);
+
+  const isDisabled = useMemo(() => {
+    if (amount === '' || amount === '0') return true;
+    if (!provider) return true;
+    return false;
+  }, [amount, provider]);
 
   const checkTx = useCallback(
     async (tx: providers.TransactionResponse) => {
@@ -49,7 +56,7 @@ const Bridge: React.FC = () => {
 
     try {
       setIsPending(true);
-      const tx = await onApprove(provider, erc20Tokens[0].address, kovanXDaiBridgeAddress);
+      const tx = await onApprove(provider, erc20Tokens[0].address, kovanToSokolBridgeAddress);
       await checkTx(tx);
       toast.success(`KSPOA has been approved`);
     } catch (error) {
@@ -62,12 +69,32 @@ const Bridge: React.FC = () => {
     }
   }, [provider, checkTx]);
 
+  const onRelayTokens = useCallback(async () => {
+    if (!(provider && amount && id)) return;
+
+    try {
+      setIsPending(true);
+      const tx = await relayTokens(provider, kovanToSokolBridgeAddress, id, utils.parseEther(amount).toString());
+      await checkTx(tx);
+      toast.success(`KSPOA has been bridged`);
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Bridging token failed', error);
+      const possibleTxError = error as Error & { error?: Error };
+      toast.error(
+        `Bridging failed: ${possibleTxError.error ? possibleTxError.error.message : possibleTxError.message}`,
+      );
+    } finally {
+      setIsPending(false);
+    }
+  }, [amount, id, provider, checkTx]);
+
   const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (needsApproved) {
       onApproveToken();
     } else {
-      console.log('Paying ' + amount);
+      onRelayTokens();
     }
   };
 
@@ -103,7 +130,7 @@ const Bridge: React.FC = () => {
                 margin-left: ${GU * 2}px;
               `}
               type={'submit'}
-              disabled={isPending}
+              disabled={isDisabled}
             >
               {isPending ? 'Pending...' : needsApproved ? 'Approve' : 'Pay'}
             </button>
