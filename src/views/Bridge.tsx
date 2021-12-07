@@ -32,10 +32,10 @@ const Bridge: React.FC = () => {
   }, [amount, allowance]);
 
   const isDisabled = useMemo(() => {
-    if (amount === '' || amount === '0') return true;
+    if (amount === '' || amount === '0' || isPending) return true;
     if (!provider) return true;
     return false;
-  }, [amount, provider]);
+  }, [amount, isPending, provider]);
 
   const checkTx = useCallback(
     async (tx: providers.TransactionResponse) => {
