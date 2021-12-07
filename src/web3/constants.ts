@@ -1,7 +1,12 @@
 import ethIcon from 'assets/eth.png';
 import xdaiIcon from 'assets/xdai.png';
 
-const { REACT_APP_DEFAULT_NETWORK, REACT_APP_KOVAN_RPC: KOVAN_RPC, REACT_APP_SOKOL_RPC: SOKOL_RPC } = process.env;
+const {
+  REACT_APP_DEFAULT_NETWORK,
+  REACT_APP_KOVAN_RPC: KOVAN_RPC,
+  REACT_APP_SOKOL_RPC: SOKOL_RPC,
+  REACT_APP_SIDE_NETWORK,
+} = process.env;
 
 export const erc20Tokens = [
   {
@@ -64,3 +69,4 @@ export const NETWORK_NAMES: StringInfo = {
 };
 
 export const DEFAULT_NETWORK = Number(REACT_APP_DEFAULT_NETWORK || 42);
+export const SIDE_NETWORK = Number(REACT_APP_SIDE_NETWORK || 77);

@@ -5,12 +5,13 @@ import { GU } from 'components/theme';
 import { shortenAddress } from 'utils';
 
 import { WalletContext } from 'contexts/WalletContext';
+import { NETWORK_NAMES } from 'web3/constants';
 
 import { Container, Flex } from 'components/Containers';
-import { H3, P2 } from 'components/Typography';
+import { H3, P2, P3 } from 'components/Typography';
 
 const Header: React.FC = () => {
-  const { address, connectWallet, isConnected, disconnect } = useContext(WalletContext);
+  const { address, connectWallet, isConnected, disconnect, chainId } = useContext(WalletContext);
   const navigate = useNavigate();
 
   return (
@@ -32,16 +33,27 @@ const Header: React.FC = () => {
         </H3>
 
         {isConnected ? (
-          <Flex>
-            {isConnected && <P2>{shortenAddress(address || '')}</P2>}
-            <button
-              css={`
-                margin-left: ${GU * 4}px;
-              `}
-              onClick={disconnect}
-            >
-              Disconnect
-            </button>
+          <Flex align={'flex-end'} direction={'column'}>
+            <Flex>
+              {isConnected && <P2>{shortenAddress(address || '')}</P2>}
+              <button
+                css={`
+                  margin-left: ${GU * 4}px;
+                `}
+                onClick={disconnect}
+              >
+                Disconnect
+              </button>
+            </Flex>
+            {chainId && (
+              <P3
+                css={`
+                  margin-top: ${GU * 2}px;
+                `}
+              >
+                {NETWORK_NAMES[chainId]}
+              </P3>
+            )}
           </Flex>
         ) : (
           <button onClick={connectWallet}>Connect</button>

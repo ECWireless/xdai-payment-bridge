@@ -2,7 +2,7 @@ import { SafeAppWeb3Modal as Web3Modal } from '@gnosis.pm/safe-apps-web3modal';
 import { providers } from 'ethers';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-toastify';
-import { DEFAULT_NETWORK, NETWORK_NAMES } from 'web3/constants';
+import { DEFAULT_NETWORK, SIDE_NETWORK, NETWORK_NAMES } from 'web3/constants';
 import { switchChainOnMetaMask } from 'web3/metamask';
 import { providerOptions } from 'web3/providerOptions';
 
@@ -66,7 +66,7 @@ export const WalletProvider: React.FC = ({ children }) => {
     const ethersProvider = new providers.Web3Provider(prov);
 
     let network = Number(prov.chainId);
-    if (network !== DEFAULT_NETWORK) {
+    if (network !== DEFAULT_NETWORK && network !== SIDE_NETWORK) {
       const success = isMetamaskProvider(ethersProvider) ? await switchChainOnMetaMask(DEFAULT_NETWORK) : false;
       if (!success) {
         const errorMsg = `Network not supported, please switch to ${NETWORK_NAMES[DEFAULT_NETWORK]}`;
