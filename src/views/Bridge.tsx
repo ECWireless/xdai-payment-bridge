@@ -157,7 +157,7 @@ const Bridge: React.FC = () => {
               css={`
                 width: ${GU * 60}px;
               `}
-              disabled={isDisabled}
+              disabled={isPending}
               type={'number'}
               name={'search'}
               id={'search'}
